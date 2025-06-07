@@ -15,7 +15,7 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.yourdomain.com.br`)"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.upsolve.com.br`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.docker.network=production"

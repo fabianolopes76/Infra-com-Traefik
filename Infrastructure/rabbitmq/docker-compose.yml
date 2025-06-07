@@ -30,7 +30,7 @@ services:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.evolution.rule=Host(`rabbit.yourdomain.online`)"
+      - "traefik.http.routers.evolution.rule=Host(`rabbit.upsolve.com.br`)"
       - "traefik.http.routers.evolution.entrypoints=websecure"
       - "traefik.http.services.evolution.loadbalancer.server.port=15672"
       - "traefik.docker.network=production"
