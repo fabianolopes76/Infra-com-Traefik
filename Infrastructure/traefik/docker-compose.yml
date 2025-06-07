@@ -29,7 +29,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
       - "--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
-      - "--certificatesresolvers.letsencrypt.acme.email=wallacemartinss@hotmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=fabiano@fabianolopes.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
 
       # Redirecionamento de HTTP para HTTPS
@@ -42,12 +42,8 @@ services:
       # Configurar TLS para o domínio e wildcard
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
-      - "--entrypoints.websecure.http.tls.domains[0].main=yourdomain.com.br"
-      - "--entrypoints.websecure.http.tls.domains[0].sans=*.yourdomain.com.br"
-      - "--entrypoints.websecure.http.tls.domains[1].main=yourdomain.com"
-      - "--entrypoints.websecure.http.tls.domains[1].sans=*.yourdomain.com"
-      - "--entrypoints.websecure.http.tls.domains[2].main=yourdomain.online"
-      - "--entrypoints.websecure.http.tls.domains[2].sans=*.yourdomain.online"
+      - "--entrypoints.websecure.http.tls.domains[0].main=upsolve.com.br"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.upsolve.com.br"
 
       # Habilitar logs detalhados
       - "--log.level=DEBUG"
@@ -63,10 +59,10 @@ services:
     labels:
       # Acesso ao painel do Traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.yourdomain.com.br`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.upsolve.com.br`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$05$$P.M7abpqCKXMAUh07Zm8RuDdCx7XoL1D3x3wfN2o.4nJN2n9YZj3O" #senha123
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$05$$BNzlP8aEzvem1GTzFo3g2e9yQSx.lDaVsB8dKSjA2NjDcGInznFkG"
       - "traefik.http.routers.traefik.middlewares=traefik-auth"
       
     secrets:
