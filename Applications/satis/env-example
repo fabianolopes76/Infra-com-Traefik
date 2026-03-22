@@ -1,0 +1,9 @@
+# GitHub PAT — scopes: repo (leitura de repos privados)
+# https://github.com/settings/tokens
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+
+# Gere com: openssl rand -hex 32
+WEBHOOK_SECRET=troque_por_string_aleatoria
+
+# Gere com: echo $(htpasswd -nB admin) | sed -e 's/\$/\$\$/g'
+SATIS_BASIC_AUTH=admin:$$2y$$05$$...

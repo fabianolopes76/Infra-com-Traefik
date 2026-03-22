@@ -1,0 +1,15 @@
+{
+  "name": "upsolve-br/packages",
+  "description": "Repositório privado de pacotes PHP da UpSolve Technologies",
+  "homepage": "https://packages.upsolve.com.br",
+  "repositories": [],
+  "require-all": false,
+  "require": {},
+  "archive": {
+    "directory": "dist",
+    "format": "zip",
+    "skip-dev": true
+  },
+  "output-dir": "/var/satis/output",
+  "output-html": true
+}

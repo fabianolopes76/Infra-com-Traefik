@@ -8,19 +8,17 @@ networks:
 
 services:
   satis:
-    image: crazymax/satis:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: satis
     restart: unless-stopped
     volumes:
-      - ./config/satis.json:/var/satis/satis.json:ro
+      - ./config/satis.json:/var/satis/config/satis.json:ro
       - ./output:/var/satis/output
       - satis-composer-cache:/root/.composer/cache
     environment:
-      - SATIS_SKIP_ERRORS=true
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - CRON_ENABLED=true
-      - CRON_SCHEDULE=0 */6 * * *
-      - WEBHOOK_ENABLED=true
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
     labels:
       - "traefik.enable=true"
