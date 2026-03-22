@@ -2,7 +2,28 @@
   "name": "upsolve-br/packages",
   "description": "Repositório privado de pacotes PHP da UpSolve Technologies",
   "homepage": "https://packages.upsolve.com.br",
-  "repositories": [],
+  "repositories": [
+    {
+      "name": "upsolve-br/packages",                                                                  
+      "description": "Repositório privado de pacotes PHP da UpSolve Technologies",                    
+      "homepage": "https://packages.upsolve.com.br",
+      "repositories": [                                                                               
+        { "type": "vcs", "url": "https://github.com/upsolve-br/filament-language-switch" },
+        { "type": "vcs", "url": "https://github.com/upsolve-br/filament-shield" }                     
+      ],                                                                                              
+      "require": {                                                                                    
+        "upsolve-br/filament-language-switch": "*",                                                   
+        "upsolve-br/filament-shield": "*"                     
+      },                                                                                              
+      "archive": {
+        "directory": "dist",                                                                          
+        "format": "zip",                                      
+        "skip-dev": true                                                                              
+      },                                                      
+      "output-dir": "/var/satis/output",
+      "output-html": true
+    }
+  ],
   "require-all": true,
   "archive": {
     "directory": "dist",
