@@ -1,6 +1,5 @@
 FROM php:8.4-fpm
 
-# Dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
     zip \
@@ -9,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     bash \
     nginx \
     cron \
+    libzip-dev \
+    && docker-php-ext-install zip \
     && rm -rf /var/lib/apt/lists/*
 
 # Composer
