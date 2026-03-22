@@ -3,8 +3,7 @@
   "description": "Repositório privado de pacotes PHP da UpSolve Technologies",
   "homepage": "https://packages.upsolve.com.br",
   "repositories": [],
-  "require-all": false,
-  "require": {},
+  "require-all": true,
   "archive": {
     "directory": "dist",
     "format": "zip",
