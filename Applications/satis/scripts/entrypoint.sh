@@ -11,8 +11,14 @@ fi
 echo "[Satis] Iniciando build inicial..."
 /usr/local/bin/satis-build
 
-# Inicia serviços
+# Inicia cron
 service cron start
-php-fpm -D
 
+# Inicia PHP-FPM em background
+php-fpm &
+
+# Aguarda o FPM inicializar
+sleep 2
+
+# Inicia Nginx em foreground (processo principal)
 exec nginx -g "daemon off;"

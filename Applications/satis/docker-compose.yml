@@ -30,8 +30,12 @@ services:
       - "traefik.http.routers.satis.middlewares=satis-auth"
       - "traefik.docker.network=production"
     networks:
-      - production
-      - monitoring
+      monitoring:
+        external: true
+        name: monitoring
+      production:
+        external: true
+        name: production
 
 volumes:
   satis-composer-cache:
