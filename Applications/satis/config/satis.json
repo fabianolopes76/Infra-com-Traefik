@@ -1,5 +1,6 @@
 {
   "name": "upsolve-br/packages",
+  "version": "1.0.0",
   "description": "Repositório privado de pacotes PHP da UpSolve Technologies",
   "homepage": "https://packages.upsolve.com.br",
   "repositories": [
