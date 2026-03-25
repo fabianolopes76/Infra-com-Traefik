@@ -7,7 +7,8 @@
     { "type": "vcs", "url": "https://github.com/upsolve-br/contracts" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/user-management" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/filament-language-switch" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-shield" }
+    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-shield" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-taxonomy" }
   ],
   "require-all": true,
   "archive": {
