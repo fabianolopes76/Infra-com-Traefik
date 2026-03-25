@@ -14,12 +14,19 @@ if (!hash_equals($expected, $signature)) {
 
 $data = json_decode($payload, true);
 
-// Só processa push na branch main/master
+// Aceita push em main/master ou tags (refs/tags/*)
 $ref = $data['ref'] ?? '';
-if (!in_array($ref, ['refs/heads/main', 'refs/heads/master'])) {
+$isBranch = in_array($ref, ['refs/heads/main', 'refs/heads/master']);
+$isTag = str_starts_with($ref, 'refs/tags/');
+
+if (!$isBranch && !$isTag) {
     echo json_encode(['status' => 'ignorado', 'ref' => $ref]);
     exit;
 }
+
+$triggerType = $isTag ? 'tag push' : 'branch push';
+$repo = $data['repository']['full_name'] ?? 'desconhecido';
+error_log("[satis-webhook] Rebuild disparado por {$triggerType}: {$ref} ({$repo})");
 
 // Dispara rebuild em background
 exec('nohup /usr/local/bin/satis-build >> /var/log/satis-build.log 2>&1 &');
@@ -27,6 +34,7 @@ exec('nohup /usr/local/bin/satis-build >> /var/log/satis-build.log 2>&1 &');
 http_response_code(200);
 echo json_encode([
     'status'     => 'rebuild iniciado',
-    'repository' => $data['repository']['full_name'] ?? 'desconhecido',
+    'trigger'    => $triggerType,
+    'repository' => $repo,
     'ref'        => $ref,
 ]);
