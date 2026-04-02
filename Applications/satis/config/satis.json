@@ -9,7 +9,9 @@
     { "type": "vcs", "url": "https://github.com/upsolve-br/filament-language-switch" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/filament-shield" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-taxonomy" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-settings" }
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-settings" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-persons" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-brazil-fields" }
   ],
   "require-all": true,
   "archive": {
