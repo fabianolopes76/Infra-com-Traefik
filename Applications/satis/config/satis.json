@@ -11,7 +11,8 @@
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-taxonomy" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-settings" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-persons" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-brazil-fields" }
+    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-brazil-fields" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/document-manager" }
   ],
   "require-all": true,
   "archive": {
