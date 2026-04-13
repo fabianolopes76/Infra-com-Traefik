@@ -18,7 +18,8 @@
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-core" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-sync" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-calendar" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-tasks" }
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-tasks" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-projects" }
   ],
   "require-all": true,
   "archive": {
