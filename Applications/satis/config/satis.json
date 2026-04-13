@@ -12,7 +12,13 @@
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-settings" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/app-persons" },
     { "type": "vcs", "url": "https://github.com/upsolve-br/filament-brazil-fields" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/document-manager" }
+    { "type": "vcs", "url": "https://github.com/upsolve-br/document-manager" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-files" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/business-calendar" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-core" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-sync" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-calendar" },
+    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-tasks" }
   ],
   "require-all": true,
   "archive": {
