@@ -41,7 +41,7 @@ services:
       - "traefik.http.routers.satis-webhook.entrypoints=websecure"
       - "traefik.http.routers.satis-webhook.tls.certresolver=letsencrypt"
       - "traefik.http.routers.satis-webhook.service=satis"
-      - "traefik.http.routers.satis-webhook.priority=10"
+      - "traefik.http.routers.satis-webhook.priority=1000"
       - "traefik.docker.network=production"
     networks:
       - production
