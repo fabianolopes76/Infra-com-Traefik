@@ -1,25 +1,87 @@
 {
   "name": "upsolve-br/packages",
-  "version": "1.0.0",
-  "description": "Repositório privado de pacotes PHP da UpSolve Technologies",
   "homepage": "https://packages.upsolve.com.br",
   "repositories": [
-    { "type": "vcs", "url": "https://github.com/upsolve-br/contracts" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/user-management" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-language-switch" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-shield" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-taxonomy" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-settings" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-persons" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/filament-brazil-fields" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/document-manager" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-files" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/business-calendar" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-core" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-sync" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-calendar" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-tasks" },
-    { "type": "vcs", "url": "https://github.com/upsolve-br/app-planner-projects" }
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/contracts"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/user-management"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/filament-language-switch"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/filament-shield"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-taxonomy"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-settings"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-persons"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/filament-brazil-fields"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/document-manager"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-files"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/business-calendar"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-planner-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-planner-sync"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-planner-calendar"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-planner-tasks"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-planner-projects"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-audits"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-backup"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/dev-tools"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/filament-charts"
+    }
   ],
   "require-all": true,
   "archive": {

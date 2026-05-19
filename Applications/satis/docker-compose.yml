@@ -14,7 +14,11 @@ services:
     container_name: satis
     restart: unless-stopped
     volumes:
-      - ./config/satis.json:/var/satis/config/satis.json:ro
+      # Bind do DIRETÓRIO (não do arquivo) — evita "inode stuck" quando
+      # o satis.json é substituído via SCP/rsync (atomic replace). Bind
+      # de arquivo individual cacheia o inode original e nunca atualiza,
+      # mesmo após docker compose down/up. Diagnosticado 2026-05-19.
+      - ./config:/var/satis/config:ro
       - ./output:/var/satis/output
       - satis-composer-cache:/root/.composer/cache
     environment:
