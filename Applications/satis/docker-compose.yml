@@ -26,12 +26,22 @@ services:
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
     labels:
       - "traefik.enable=true"
+      # Router principal — TODO o domínio coberto por Basic Auth
       - "traefik.http.routers.satis.rule=Host(`packages.upsolve.com.br`)"
       - "traefik.http.routers.satis.entrypoints=websecure"
       - "traefik.http.routers.satis.tls.certresolver=letsencrypt"
       - "traefik.http.services.satis.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.satis-auth.basicauth.users=${SATIS_BASIC_AUTH}"
       - "traefik.http.routers.satis.middlewares=satis-auth"
+      # Router /webhook — SEM Basic Auth (GitHub webhooks usam HMAC, não basic)
+      # Priority alta garante que esse router casa antes do principal.
+      # Diagnosticado 2026-05-19 noite: GitHub recebia 401 do Traefik antes
+      # de chegar no PHP. Tracking: upsolve-br/upsolve-workspace#31.
+      - "traefik.http.routers.satis-webhook.rule=Host(`packages.upsolve.com.br`) && PathPrefix(`/webhook`)"
+      - "traefik.http.routers.satis-webhook.entrypoints=websecure"
+      - "traefik.http.routers.satis-webhook.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.satis-webhook.service=satis"
+      - "traefik.http.routers.satis-webhook.priority=10"
       - "traefik.docker.network=production"
     networks:
       - production
