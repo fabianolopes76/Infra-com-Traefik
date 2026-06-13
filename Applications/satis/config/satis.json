@@ -89,6 +89,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/monetary-engine"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/temporal-rules"
     }
   ],
   "require-all": true,
