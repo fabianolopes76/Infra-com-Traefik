@@ -113,6 +113,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-customer"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-wallet"
     }
   ],
   "require-all": true,
