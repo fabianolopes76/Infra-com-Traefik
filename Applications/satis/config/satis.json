@@ -121,6 +121,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-wallet"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-managerial-chart"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-engagement"
     }
   ],
   "require-all": true,
