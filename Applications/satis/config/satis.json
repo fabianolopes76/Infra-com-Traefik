@@ -81,6 +81,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/filament-charts"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/money"
     }
   ],
   "require-all": true,
