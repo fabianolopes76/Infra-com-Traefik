@@ -105,6 +105,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/document-vault"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-core"
     }
   ],
   "require-all": true,
