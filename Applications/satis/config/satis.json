@@ -93,6 +93,18 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/temporal-rules"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/domain-events-outbox"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/document-numbering"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/document-vault"
     }
   ],
   "require-all": true,
