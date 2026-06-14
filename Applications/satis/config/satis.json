@@ -141,6 +141,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-accounts-payable"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-collaborator"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-minimal"
     }
   ],
   "require-all": true,
