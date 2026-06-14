@@ -185,6 +185,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-fiscal-mvp"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-tax-obligations"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-accounting-core"
     }
   ],
   "require-all": true,
