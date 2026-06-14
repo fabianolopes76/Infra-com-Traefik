@@ -173,6 +173,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-banking-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-document"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-banking-pix"
     }
   ],
   "require-all": true,
