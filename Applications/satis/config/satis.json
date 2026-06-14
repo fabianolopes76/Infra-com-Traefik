@@ -201,6 +201,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-accounting-statements"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-pgdas"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-accounting-closing"
     }
   ],
   "require-all": true,
