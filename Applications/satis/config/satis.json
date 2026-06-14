@@ -165,6 +165,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-compliance-lgpd"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-tax-calc"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-banking-core"
     }
   ],
   "require-all": true,
