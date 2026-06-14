@@ -157,6 +157,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-compliance-audit-trail"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-classification"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-compliance-lgpd"
     }
   ],
   "require-all": true,
