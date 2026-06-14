@@ -133,6 +133,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-crm-invoice"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-accounts-receivable"
     }
   ],
   "require-all": true,
