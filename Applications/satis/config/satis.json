@@ -193,6 +193,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-accounting-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-tax-payments"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-accounting-statements"
     }
   ],
   "require-all": true,
