@@ -149,6 +149,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-minimal"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-core"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-compliance-audit-trail"
     }
   ],
   "require-all": true,
