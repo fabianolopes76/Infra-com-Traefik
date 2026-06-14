@@ -129,6 +129,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-crm-engagement"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-invoice"
     }
   ],
   "require-all": true,
