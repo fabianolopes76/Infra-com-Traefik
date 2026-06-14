@@ -209,6 +209,14 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-accounting-closing"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-mvp-periodic"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-accounting-mvp"
     }
   ],
   "require-all": true,
