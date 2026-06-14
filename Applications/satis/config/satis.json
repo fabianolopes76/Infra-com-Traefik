@@ -137,6 +137,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-accounts-receivable"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-accounts-payable"
     }
   ],
   "require-all": true,
