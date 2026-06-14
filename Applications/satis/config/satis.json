@@ -181,6 +181,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-banking-pix"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-fiscal-mvp"
     }
   ],
   "require-all": true,
