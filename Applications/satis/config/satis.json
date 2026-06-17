@@ -112,6 +112,10 @@
     },
     {
       "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-crm-interactions"
+    },
+    {
+      "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-core"
     },
     {
