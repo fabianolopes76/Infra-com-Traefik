@@ -116,6 +116,10 @@
     },
     {
       "type": "vcs",
+      "url": "https://github.com/upsolve-br/vertical-legal-court-tracking"
+    },
+    {
+      "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-core"
     },
     {
