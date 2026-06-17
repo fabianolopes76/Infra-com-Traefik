@@ -120,6 +120,10 @@
     },
     {
       "type": "vcs",
+      "url": "https://github.com/upsolve-br/document-retention"
+    },
+    {
+      "type": "vcs",
       "url": "https://github.com/upsolve-br/app-financial-core"
     },
     {
