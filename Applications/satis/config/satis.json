@@ -241,6 +241,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/app-accounting-integration-listeners"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/filament-navigation"
     }
   ],
   "require-all": true,
