@@ -249,6 +249,10 @@
     {
       "type": "vcs",
       "url": "https://github.com/upsolve-br/filament-navigation"
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/upsolve-br/dev-standards"
     }
   ],
   "require-all": true,
