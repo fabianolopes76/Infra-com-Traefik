@@ -15,13 +15,35 @@ set -e
 # disparos concorrentes = 1 build em curso + no máximo 1 build de recarga,
 # sempre com o estado mais novo dos repositórios.
 
+# PATH mínimo do cron (/usr/bin:/bin) não enxerga o php da imagem oficial
+# (/usr/local/bin/php) — TODOS os builds do cron falharam por semanas com
+# "php: command not found". Binário por caminho absoluto, sempre.
+PHP_BIN=/usr/local/bin/php
+
+# O webhook roda como www-data, cujo HOME não tem o github-oauth configurado
+# pelo entrypoint (repos upsolve-br são privados) — aponta o composer para o
+# home com credenciais, independente do usuário que disparou.
+export COMPOSER_HOME=${COMPOSER_HOME:-/root/.composer}
+
+# O webhook roda como www-data e o cron como root: lock e flag precisam ser
+# graváveis por ambos (senão o flock/touch do segundo usuário falha em
+# silêncio e o disparo se perde).
+umask 000
+
+# Ao baixar os dists, o Composer cria seu diretório vendor/composer RELATIVO ao
+# cwd. O webhook roda via php-fpm com cwd=/var/webhook (não-gravável por www-data)
+# → build falha com "/var/webhook/vendor/composer does not exist and could not be
+# created" (só no fluxo do webhook; o build manual roda de cwd gravável). Roda
+# sempre de um cwd gravável por qualquer usuário. Issue #31.
+cd /tmp
+
 LOCK_FILE=/var/lock/satis-build.lock
 PENDING_FLAG=/var/lock/satis-build.pending
 
 run_build() {
     echo "[$(date)] Iniciando rebuild do Satis..."
 
-    php /satis/bin/satis build \
+    "$PHP_BIN" /satis/bin/satis build \
         /var/satis/config/satis.json \
         /var/satis/output \
         --no-interaction \
