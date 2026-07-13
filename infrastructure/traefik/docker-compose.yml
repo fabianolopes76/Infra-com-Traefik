@@ -49,8 +49,8 @@ services:
       - "--entrypoints.websecure.http.tls.domains[0].main=upsolve.com.br"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.upsolve.com.br"
 
-      # Habilitar logs detalhados
-      - "--log.level=DEBUG"
+      # Nível de log (INFO em produção; use DEBUG só para diagnóstico)
+      - "--log.level=INFO"
 
       # Habilitar Metricas Prometheus
       - "--metrics.prometheus=true"
