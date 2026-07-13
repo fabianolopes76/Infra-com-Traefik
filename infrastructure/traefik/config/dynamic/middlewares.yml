@@ -49,6 +49,14 @@ http:
     compress:
       compress: {}
 
+    # ALIAS LEGADO: containers nginx@docker / nginx_fabianolopes@docker (fora deste
+    # repo) ainda referenciam "compress-response@file" nas labels e ficam em erro
+    # sem ele. Mantido para não derrubar esses sites. AÇÃO PENDENTE: atualizar as
+    # labels desses composes na VPS (a default-chain já comprime tudo -> pode
+    # remover o middleware da label) e então apagar este alias.
+    compress-response:
+      compress: {}
+
     in-flight:
       inFlightReq:
         amount: 100 # requisições simultâneas por origem
