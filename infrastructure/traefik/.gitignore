@@ -1,0 +1,6 @@
+# Certificados ACME — chaves privadas; gerados/gerenciados em runtime.
+# (Fora do Git também evita o reset de permissao 644 que quebra o resolver.)
+certs/acme.json
+
+# Secrets de credenciais — provisionar por ambiente, nunca versionar.
+secrets/*.secret
