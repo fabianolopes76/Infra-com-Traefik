@@ -1,0 +1,15 @@
+# Provider de dashboards como código. O Grafana varre /var/lib/grafana/dashboards
+# e importa todo *.json. Atualiza sozinho a cada 30s se o arquivo mudar.
+apiVersion: 1
+
+providers:
+  - name: Infra
+    orgId: 1
+    folder: Infra            # pasta onde os dashboards aparecem na UI
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true     # deixa editar na UI (mudanças não persistem no arquivo)
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

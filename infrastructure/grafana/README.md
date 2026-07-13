@@ -51,19 +51,40 @@ GF_SMTP_FROM_NAME="Grafana Alertas"
 GF_SMTP_SKIP_VERIFY=true
 ```
 
-## Importing Dashboards in Grafana
+## Provisionamento como código (datasource + dashboards)
 
-✔️ Traefik - Dashboard ID: 4475
+Nada é importado à mão. No boot, o Grafana lê `provisioning/` e `dashboards/`
+(montados no compose) e cria tudo automaticamente — reproduzível e versionado:
 
-✔️ PostgreSQL - Dashboard ID: 9628
+```
+provisioning/
+  datasources/datasource.yml   # Prometheus (uid=prometheus, default) + Alertmanager
+  dashboards/provider.yml       # provider file -> /var/lib/grafana/dashboards (pasta "Infra")
+dashboards/                     # JSON versionado, baixado do grafana.com e com datasource fixado
+  node-exporter-full.json       # host  (ID 1860)
+  cadvisor.json                 # containers (ID 14282)
+  postgresql.json               # ID 9628
+  mysql-overview.json           # ID 7362
+  redis.json                    # oliver006 redis_exporter (ID 763)
+  traefik.json                  # v3 oficial (ID 17346)
+  blackbox.json                 # uptime/probe HTTPS (ID 13659)
+```
 
-✔️ MySQL - Dashboard ID: 7362
+Os dashboards aparecem na pasta **Infra** do Grafana com o datasource já ligado —
+zero clique. Para atualizar/adicionar um dashboard:
 
-✔️ Redis - Dashboard ID: 11835
+```bash
+# baixa o JSON oficial e fixa o datasource provisionado (uid=prometheus)
+curl -s https://grafana.com/api/dashboards/<ID>/revisions/latest/download \
+  | sed 's/${DS_PROMETHEUS}/prometheus/g; s/${DS_PROM}/prometheus/g' \
+  > dashboards/<nome>.json
+git add dashboards/<nome>.json && git commit -m "grafana: dashboard <nome>"
+```
 
-✔️ Node Exporter (server metrics)- Dashboard ID: 1860
+O provider recarrega a cada 30s; após `docker compose up -d` o novo painel já entra.
 
-✔️ RabbitMQ- Dashboard ID: 10991
+> **Datasource:** o uid `prometheus` é fixo no `datasource.yml` e os JSONs apontam
+> para ele. Não selecione datasource ao usar — já vem conectado.
 
 To browse ready-to-use community dashboards: 🔗 https://grafana.com/grafana/dashboards
 

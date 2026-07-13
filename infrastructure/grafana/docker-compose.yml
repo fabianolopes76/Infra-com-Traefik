@@ -29,6 +29,9 @@ services:
       # - "traefik.http.routers.grafana.middlewares=portainer-protect@file"
     volumes:
       - grafana_data:/var/lib/grafana
+      # provisionamento como código (datasource + dashboards versionados no repo)
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro
     networks:
       - monitoring
       - production

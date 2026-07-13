@@ -41,13 +41,17 @@ scrape_configs:
     static_configs:
       - targets: ['postgres-exporter:9187']
 
-  - job_name: 'rabbitmq'
-    static_configs:
-      - targets: ['rabbitmq:15692']
+  # rabbitmq: sem container em execução (job ficava DOWN à toa). Reative
+  # descomentando quando subir o RabbitMQ com o plugin prometheus (porta 15692).
+  # - job_name: 'rabbitmq'
+  #   static_configs:
+  #     - targets: ['rabbitmq:15692']
 
-  - job_name: 'soketi'
-    static_configs:
-      - targets: ['soketi:6001']
+  # soketi: substituído por Reverb, que não expõe /metrics no formato Prometheus.
+  # Removido para não manter target morto. (Se um dia expuser métricas, recrie o job.)
+  # - job_name: 'soketi'
+  #   static_configs:
+  #     - targets: ['soketi:6001']
 
   # NOVO: probes HTTPS externos — uptime + validade de certificado
   - job_name: 'blackbox-https'

@@ -71,11 +71,27 @@ groups:
           summary: "Certificado de {{ $labels.instance }} expira em < 14 dias"
 
       - alert: High5xxRate
+        # O 'and ... > 0.2' exige tráfego mínimo (~12 req/min) no serviço antes de
+        # alertar: endpoints de baixo tráfego (ex: Reverb/websocket) davam falso
+        # 'crítico' quando 2-3 erros de um deploy dominavam a razão.
         expr: >
           sum by (service)(rate(traefik_service_requests_total{code=~"5.."}[5m]))
           /
           sum by (service)(rate(traefik_service_requests_total[5m])) > 0.05
+          and
+          sum by (service)(rate(traefik_service_requests_total[5m])) > 0.2
         for: 5m
         labels: { severity: critical }
         annotations:
           summary: "Taxa de 5xx > 5% no serviço {{ $labels.service }}"
+
+  - name: monitoring
+    rules:
+      # Qualquer alvo de scrape que pare de responder (exporter caído, DB fora,
+      # container recriado sem voltar). Cobre mysql/redis/postgresql/node/cadvisor/traefik.
+      - alert: TargetDown
+        expr: up == 0
+        for: 3m
+        labels: { severity: warning }
+        annotations:
+          summary: "Target de scrape caído: {{ $labels.job }} ({{ $labels.instance }})"

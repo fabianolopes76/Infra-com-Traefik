@@ -1,0 +1,26 @@
+# Datasources provisionados (como código). O Grafana carrega isto no boot.
+# uid fixo 'prometheus' -> os dashboards versionados apontam para ele.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090   # resolvido pela rede 'monitoring'
+    isDefault: true
+    jsonData:
+      timeInterval: "15s"          # casa com o scrape_interval do Prometheus
+      httpMethod: POST
+    editable: false
+
+  # Permite ver os alertas do Alertmanager dentro do Grafana (Alerting -> Groups).
+  - name: Alertmanager
+    uid: alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: false
+    editable: false
