@@ -21,6 +21,10 @@ services:
       # Ativar providers e painel
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+
+      # Provider de arquivo (config dinâmica: middlewares em dynamic/)
+      - "--providers.file.directory=/dynamic"
+      - "--providers.file.watch=true"
       - "--api.dashboard=true"
       - "--api.insecure=false"
    
@@ -78,6 +82,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs:/letsencrypt
+      - ./dynamic:/dynamic:ro
     networks:
       - production
       - monitoring
