@@ -34,6 +34,15 @@ http:
         stsIncludeSubdomains: true
         permissionsPolicy: "camera=(), microphone=(), geolocation=()"
 
+    # Clickjacking p/ sites de app (fabianolopes.com, flcon): X-Frame-Options
+    # SAMEORIGIN permite iframe da MESMA origem (páginas internas) e bloqueia
+    # embed por terceiros. NÃO afeta iframes que o site embute (YouTube etc.).
+    # Complementa a default-chain (que não define frame-options). Use como
+    # middleware do router: middlewares=frame-sameorigin@file
+    frame-sameorigin:
+      headers:
+        customFrameOptionsValue: "SAMEORIGIN"
+
     rate-limit:
       rateLimit:
         average: 100 # req/s média por IP
