@@ -72,8 +72,22 @@ jobs:
             # Valida a sintaxe do compose ANTES de tocar nos containers rodando.
             docker compose config >/dev/null
 
-            # Aplica. Se nada mudou no compose, é no-op.
+            # Hash da config dinâmica (arquivos já copiados pelo scp).
+            NEWSUM=$(cat config/dynamic/*.yml | sha256sum | cut -d' ' -f1)
+            OLDSUM=$(cat .deploy-traefik-sum 2>/dev/null || echo none)
+
+            # Aplica mudanças de compose (recria só o que mudou; no-op se igual).
             docker compose up -d --remove-orphans
+
+            # Se a config dinâmica mudou, força releitura LIMPA do Traefik. O scp
+            # escreve os arquivos de forma não atômica e o file provider pode ler
+            # um YAML pela metade, descartar TODOS os middlewares e "grudar" nesse
+            # estado quebrado. O restart elimina o race — e só roda quando muda.
+            if [ "$NEWSUM" != "$OLDSUM" ]; then
+              echo "Config dinâmica mudou -> restart do Traefik (releitura limpa)."
+              docker compose restart traefik
+              echo "$NEWSUM" > .deploy-traefik-sum
+            fi
 
             # Estado final no log do Actions.
             docker compose ps

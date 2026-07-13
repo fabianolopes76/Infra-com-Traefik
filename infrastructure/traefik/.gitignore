@@ -7,3 +7,6 @@ secrets/*.secret
 
 # basicAuth: hashes bcrypt não vão pro Git (evita brute-force offline).
 secrets/usersfile
+
+# Marcador de deploy (checksum da config dinâmica) — criado na VPS pelo CD.
+.deploy-traefik-sum

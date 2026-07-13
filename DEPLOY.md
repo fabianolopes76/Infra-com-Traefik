@@ -19,8 +19,16 @@ push na main
    └─ 3. SSH  → recria SOMENTE a stack do Traefik:
                 docker network create --internal socket   (idempotente)
                 docker compose config                     (valida)
-                docker compose up -d --remove-orphans      (aplica)
+                docker compose up -d --remove-orphans      (aplica compose)
+                [se config/dynamic mudou] restart traefik  (releitura limpa)
 ```
+
+> **Por que o restart condicional:** o scp escreve os arquivos de forma não
+> atômica. O file provider (`file.watch`) pode ler um `config/dynamic/*.yml`
+> pela metade, falhar o parse, descartar TODOS os middlewares e "grudar" nesse
+> estado (routers em erro → 404 geral). Um checksum guardado em
+> `.deploy-traefik-sum` detecta mudança na config dinâmica e força um
+> `restart traefik` só nesse caso — leitura limpa, sem race.
 
 > **Só o Traefik é recriado automaticamente.** As demais stacks
 > (prometheus, grafana, node_exporter, portainer, apps, databases) são
