@@ -21,9 +21,17 @@ scrape_configs:
     static_configs:
       - targets: ['node_exporter:9100']
 
-  - job_name: 'cadvisor'                    # NOVO: consumo por container
+  - job_name: 'cadvisor'                    # consumo por container
     static_configs:
       - targets: ['cadvisor:8080']
+    # Corte de cardinalidade: descarta séries de altíssima cardinalidade e baixo
+    # valor (detalhe de I/O de filesystem, tasks_state, page-faults, blkio por
+    # device) que multiplicam por container e comem a RAM do Prometheus (1g).
+    # NÃO afeta os dashboards (cpu/mem/network/fs_usage seguem intactos).
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'container_tasks_state|container_memory_failures_total|container_blkio_device_usage_total|container_fs_(io_current|io_time_seconds_total|io_time_weighted_seconds_total|read_seconds_total|reads_merged_total|sector_reads_total|write_seconds_total|writes_merged_total|sector_writes_total|inodes_free|inodes_total)'
+        action: drop
 
   - job_name: 'traefik'
     static_configs:
@@ -53,17 +61,41 @@ scrape_configs:
   #   static_configs:
   #     - targets: ['soketi:6001']
 
-  # NOVO: probes HTTPS externos — uptime + validade de certificado
-  - job_name: 'blackbox-https'
+  # Uptime (http_2xx): SÓ endpoints que servem app e devem retornar 2xx.
+  # probe_success=0 aqui = app fora do ar -> alerta EndpointDown é real.
+  - job_name: 'blackbox-uptime'
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
           - https://grafana.upsolve.com.br
-          # adicione aqui a URL pública de CADA app de cliente:
-          # - https://app1.upsolve.com.br
-          # - https://app2.upsolve.com.br
+          - https://fabianolopes.com
+          - https://fabianolopes.adv.br
+          # adicione aqui a URL pública de cada app que deva responder 2xx
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # Certificado (http_tls): as 6 zonas. Tolerante a status (o apex de várias
+  # responde 404), mas o handshake TLS popula probe_ssl_earliest_cert_expiry ->
+  # o alerta SSLCertExpiringSoon cobre TODAS as zonas, não só as que dão 2xx.
+  - job_name: 'blackbox-tls'
+    metrics_path: /probe
+    params:
+      module: [http_tls]
+    static_configs:
+      - targets:
+          - https://upsolve.com.br
+          - https://fabianolopes.com
+          - https://fabianolopes.com.br
+          - https://fabianolopes.adv.br
+          - https://prospere.academy
+          - https://asset.cnt.br
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

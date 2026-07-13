@@ -93,6 +93,31 @@ groups:
         annotations:
           summary: "Target de scrape caído: {{ $labels.job }} ({{ $labels.instance }})"
 
+  - name: databases
+    rules:
+      # Liveness no nível da aplicação: cada exporter só reporta *_up=1 se
+      # conseguiu conectar E consultar o banco. Melhor sinal que um TCP connect.
+      - alert: MySQLDown
+        expr: mysql_up == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "MySQL não responde (mysql_up=0)"
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "PostgreSQL não responde (pg_up=0)"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "Redis não responde (redis_up=0)"
+
   - name: watchdog
     rules:
       # DeadMansSwitch: SEMPRE dispara (vector(1)). No Alertmanager é roteado para

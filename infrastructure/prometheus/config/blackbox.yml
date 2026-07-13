@@ -1,0 +1,27 @@
+# =============================================================
+# Blackbox exporter — módulos de probe.
+# Substitui o config default do image (por isso replicamos http_2xx).
+#   http_2xx : uptime real (exige 2xx). Usado nos endpoints que servem app.
+#   http_tls : cobertura de CERTIFICADO. Tolerante a status (200/301/401/404...)
+#              porque o apex de várias zonas responde 404 — mas o handshake TLS
+#              acontece antes, então probe_ssl_earliest_cert_expiry é populado.
+#              fail_if_not_ssl garante que só passa se a conexão for realmente TLS.
+# =============================================================
+modules:
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      follow_redirects: true
+      fail_if_not_ssl: true
+      preferred_ip_protocol: "ip4"
+
+  http_tls:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: [200, 204, 301, 302, 307, 308, 401, 403, 404]
+      follow_redirects: false          # queremos o cert do apex, não o do destino do redirect
+      fail_if_not_ssl: true
+      preferred_ip_protocol: "ip4"
