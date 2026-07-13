@@ -152,6 +152,11 @@ services:
     environment:
       - CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare-token
       - CF_API_EMAIL_FILE=/run/secrets/cloudflare-email
+      # Docker Engine da VPS suporta no máx. a API 1.50; o cliente do Traefik
+      # v3.7.7 assumiria 1.54. Via socket-proxy o /_ping é bloqueado, então a
+      # negociação automática falha -> fixamos a versão manualmente.
+      # Ao atualizar o Docker Engine da VPS, pode subir/remover este valor.
+      - DOCKER_API_VERSION=1.50
     ports:
       - "80:80"
       - "443:443"
