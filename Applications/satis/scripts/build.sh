@@ -25,6 +25,15 @@ PHP_BIN=/usr/local/bin/php
 # home com credenciais, independente do usuário que disparou.
 export COMPOSER_HOME=${COMPOSER_HOME:-/root/.composer}
 
+# O cache do Composer (metadata dos repos + dists) DEVE cair no diretório montado
+# como volume (satis-composer-cache em /root/.composer/cache), senão todo rebuild é
+# a frio. O Composer 2 no Linux IGNORA $COMPOSER_HOME/cache e usa o XDG
+# (~/.cache/composer) por default — então sem esta linha o volume não captura nada e
+# cada `docker compose up --build` re-varre os ~20 repos via API (~30 min, visto
+# 2026-07-12). O php-fpm roda o webhook com clear_env=yes, então NÃO dá pra confiar
+# só no env do compose; exportamos aqui p/ valer em root(cron), www-data(webhook) e boot.
+export COMPOSER_CACHE_DIR=${COMPOSER_CACHE_DIR:-/root/.composer/cache}
+
 # O webhook roda como www-data e o cron como root: lock e flag precisam ser
 # graváveis por ambos (senão o flock/touch do segundo usuário falha em
 # silêncio e o disparo se perde).

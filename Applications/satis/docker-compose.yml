@@ -24,6 +24,13 @@ services:
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      # Aponta o cache do Composer para o diretório do volume acima. Sem isto, o
+      # Composer 2 usa o XDG (~/.cache/composer) e o volume satis-composer-cache
+      # (montado em /root/.composer/cache) fica vazio → todo rebuild é a frio.
+      # A linha equivalente em scripts/build.sh é a que garante isto no fluxo do
+      # webhook (php-fpm clear_env=yes não herda este env); aqui é para as demais
+      # invocações do composer no container. Diagnosticado 2026-07-12.
+      - COMPOSER_CACHE_DIR=/root/.composer/cache
     labels:
       - "traefik.enable=true"
       # Router principal — TODO o domínio coberto por Basic Auth
