@@ -5,11 +5,13 @@ networks:
 
 services:
   node_exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.12.0
     container_name: node_exporter
     restart: unless-stopped
-    ports:
-      - "9100:9100"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 128m
+    cpus: "0.25"
     pid: host
     volumes:
       - /:/host:ro,rslave

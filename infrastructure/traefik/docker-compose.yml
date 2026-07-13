@@ -1,3 +1,15 @@
+# =============================================================
+# TRAEFIK + SOCKET-PROXY (corrigido)
+# Mudanças vs. versão anterior:
+#   [C1] Porta 8080 NÃO é mais publicada (métricas só na rede interna)
+#   [C4] docker.sock removido do Traefik -> via socket-proxy
+#   [A5] log.level=INFO + access log JSON (pré-requisito CrowdSec)
+#   [A6] Imagens com versão fixada (sem :latest)
+#   [A7] no-new-privileges + limites de recursos
+#   [M11] Provider file p/ middlewares (chain padrão) e TLS options
+#   [3]  basicauth via usersfile (não mais em label)
+# =============================================================
+
 secrets:
   cloudflare-token:
     file: "secrets/cloudflare-token.secret"
@@ -11,64 +23,129 @@ networks:
   monitoring:
     external: true
     name: monitoring
+  socket:
+    external: true
+    name: socket          # criada com: docker network create --internal socket
 
 services:
+
+  # -----------------------------------------------------------
+  # Socket-proxy: única peça com acesso ao docker.sock.
+  # Expõe SOMENTE endpoints GET de leitura que o Traefik precisa.
+  # -----------------------------------------------------------
+  socket-proxy:
+    image: wollomatic/socket-proxy:1.7.0
+    container_name: socket-proxy
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 64m
+    cpus: "0.10"
+    user: "0:0"   # precisa de root p/ ler o sock; o container em si é read-only
+    command:
+      - '-loglevel=info'
+      - '-listenip=0.0.0.0'
+      - '-allowfrom=traefik'
+      - '-allowGET=/v1\..{1,2}/(version|containers/.*|events.*|networks.*)'
+      - '-watchdoginterval=3600'
+      - '-stoponwatchdog'
+      - '-shutdowngracetime=5'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket
+
   traefik:
-    image: traefik:latest
+    image: traefik:v3.7.7          # [A6] fixado — atualize deliberadamente
     container_name: traefik
     restart: unless-stopped
+    depends_on:
+      - socket-proxy
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: "1.0"
     command:
-      # Ativar providers e painel
+      # Provider Docker via socket-proxy ([C4])
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=production"
 
-      # Provider de arquivo (config dinâmica: middlewares em dynamic/)
-      - "--providers.file.directory=/dynamic"
+      # Provider File p/ middlewares e TLS options ([M11])
+      - "--providers.file.directory=/config/dynamic"
       - "--providers.file.watch=true"
+
+      # Painel
       - "--api.dashboard=true"
       - "--api.insecure=false"
-   
-      # Configurar Let's Encrypt via DNS-01 Cloudflare
+
+      # Let's Encrypt DNS-01 Cloudflare (inalterado)
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
-      - "--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
       - "--certificatesresolvers.letsencrypt.acme.email=fabiano@fabianolopes.com"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
 
-      # Redirecionamento de HTTP para HTTPS
+      # Entrypoints + redirect HTTP->HTTPS
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      
 
-      # Configurar TLS para o domínio e wildcard
+      # Cloudflare proxied: confiar nos IPs da CF p/ recuperar o IP real do
+      # visitante (X-Forwarded-For). Necessário p/ rate-limit e CrowdSec por IP.
+      # Ranges: https://www.cloudflare.com/ips-v4  (revisar se a CF atualizar)
+      - "--entrypoints.websecure.forwardedheaders.trustedips=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22"
+
+      # TLS padrão + wildcards (option 'default' do tls.yml aplica a todos os routers).
+      # Um wildcard pré-emitido por zona (DNS-01): cobre qualquer subdomínio na hora,
+      # evita rate limit da LE e deixa o sniStrict seguro. Token CF precisa ver TODAS
+      # as zonas. Ao adicionar zona nova: crie domains[n] e libere a zona no token.
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=upsolve.com.br"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.upsolve.com.br"
+      - "--entrypoints.websecure.http.tls.domains[1].main=fabianolopes.com"
+      - "--entrypoints.websecure.http.tls.domains[1].sans=*.fabianolopes.com"
+      - "--entrypoints.websecure.http.tls.domains[2].main=fabianolopes.com.br"
+      - "--entrypoints.websecure.http.tls.domains[2].sans=*.fabianolopes.com.br"
+      - "--entrypoints.websecure.http.tls.domains[3].main=fabianolopes.adv.br"
+      - "--entrypoints.websecure.http.tls.domains[3].sans=*.fabianolopes.adv.br"
+      - "--entrypoints.websecure.http.tls.domains[4].main=prospere.academy"
+      - "--entrypoints.websecure.http.tls.domains[4].sans=*.prospere.academy"
+      - "--entrypoints.websecure.http.tls.domains[5].main=asset.cnt.br"
+      - "--entrypoints.websecure.http.tls.domains[5].sans=*.asset.cnt.br"
 
-      # Nível de log (INFO em produção; use DEBUG só para diagnóstico)
+      # Chain padrão aplicada a TODO tráfego websecure ([M11])
+      - "--entrypoints.websecure.http.middlewares=default-chain@file"
+
+      # Logs ([A5]): INFO + access log JSON p/ CrowdSec/Loki
       - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/logs/access.log"
+      - "--accesslog.format=json"
+      - "--accesslog.bufferingsize=100"
+      - "--accesslog.fields.headers.names.User-Agent=keep"
 
-      # Habilitar Metricas Prometheus
+      # Métricas Prometheus — entrypoint interno, NÃO publicado ([C1])
       - "--metrics.prometheus=true"
-      - "--metrics.prometheus.entryPoint=traefik"
+      - "--metrics.prometheus.entryPoint=metrics"
       - "--metrics.prometheus.addEntryPointsLabels=true"
       - "--metrics.prometheus.addRoutersLabels=true"
       - "--metrics.prometheus.addServicesLabels=true"
-      - "--entrypoints.traefik.address=:8080"   
+      - "--entrypoints.metrics.address=:8082"
 
     labels:
-      # Acesso ao painel do Traefik
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.upsolve.com.br`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$05$$BNzlP8aEzvem1GTzFo3g2e9yQSx.lDaVsB8dKSjA2NjDcGInznFkG"
-      - "traefik.http.routers.traefik.middlewares=traefik-auth"
-      
+      # admin-chain = basicauth(usersfile) + rate limit ([3],[8])
+      - "traefik.http.routers.traefik.middlewares=admin-chain@file"
+
     secrets:
       - cloudflare-token
       - cloudflare-email
@@ -78,11 +155,18 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
+      # [C1] "8080:8080" REMOVIDO — métricas ficam internas na :8082
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # [C4] docker.sock REMOVIDO daqui
       - ./certs:/letsencrypt
-      - ./dynamic:/dynamic:ro
+      - ./config/dynamic:/config/dynamic:ro
+      - ./secrets/usersfile:/auth/usersfile:ro   # [3] hashes fora das labels
+      - traefik_logs:/logs
     networks:
       - production
       - monitoring
+      - socket
+
+volumes:
+  traefik_logs:
+    name: traefik_logs

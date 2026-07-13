@@ -1,3 +1,18 @@
+# =============================================================
+# PORTAINER (corrigido)
+#   [C2] ports: "9443:9000" REMOVIDO — acesso só via Traefik
+#   [A6] versão fixada
+#   [A7] no-new-privileges + limites
+#   [8]  admin-chain (ipAllowList + rate limit) na frente do login
+#
+# NOTA sobre o docker.sock: o Portainer precisa de ESCRITA na API
+# do Docker p/ gerenciar containers, então o sock continua montado
+# aqui — risco consciente, mitigado por: allowlist de IP no Traefik,
+# e futuramente acesso só via VPN (Tailscale/WireGuard).
+# Alternativa mais dura: 2º socket-proxy com permissões de escrita
+# dedicado ao Portainer.
+# =============================================================
+
 networks:
   production:
     external: true
@@ -5,11 +20,13 @@ networks:
 
 services:
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.40.0
     container_name: portainer
     restart: unless-stopped
-    ports:
-      - "9443:9000"
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    cpus: "0.50"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - portainer_data:/data
@@ -18,6 +35,8 @@ services:
       - "traefik.http.routers.portainer.rule=Host(`portainer.upsolve.com.br`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.middlewares=portainer-protect@file"
+      - "traefik.docker.network=production"
     networks:
       - production
 

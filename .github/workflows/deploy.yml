@@ -1,8 +1,39 @@
+# =============================================================
+# Deploy Infra — CD para a VPS (srv857637)
+#
+# Gatilho: push na branch main.
+# Fluxo:
+#   1) Checkout do repositório.
+#   2) Copia os arquivos para /home/fabiano/infra via SCP.
+#      IMPORTANTE: o scp-action NÃO apaga arquivos no destino (não é
+#      rsync --delete). Por isso os arquivos gitignored que existem só na
+#      VPS são PRESERVADOS a cada deploy:
+#        - infrastructure/traefik/secrets/usersfile
+#        - infrastructure/traefik/secrets/*.secret (cloudflare-*)
+#        - infrastructure/traefik/certs/acme.json
+#   3) Recria a stack do Traefik. O scp só copia arquivos; sem este passo o
+#      container continuaria rodando a config ANTIGA. Só o Traefik é recriado
+#      automaticamente — as demais stacks (prometheus, grafana, etc.) são
+#      recriadas manualmente (ver DEPLOY.md).
+#
+# Secrets do repositório necessários (Settings > Secrets and variables > Actions):
+#   HOST             IP/host da VPS
+#   USERNAME         usuário SSH (fabiano)
+#   SSH_PRIVATE_KEY  chave privada com acesso à VPS
+#
+# Documentação completa do pipeline: DEPLOY.md (raiz do repo).
+# =============================================================
 name: "Deploy Infra"
+
 on:
   push:
     branches:
       - main
+
+# Evita que dois pushes seguidos recriem a stack ao mesmo tempo.
+concurrency:
+  group: deploy-infra
+  cancel-in-progress: false
 
 jobs:
   build_deploy:
@@ -11,12 +42,38 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v4
 
-      - name: "Copy Files"
+      # Copia o repo para a VPS. Preserva secrets/certs gitignored (ver cabeçalho).
+      - name: "Copy files to VPS"
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.HOST}}
+          host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
           target: "/home/fabiano/infra"
-          debug: true
+
+      # Aplica a config nova no Traefik. 'up -d' é idempotente: só recria os
+      # containers cujo compose/env mudou. --remove-orphans derruba containers
+      # órfãos DESTE projeto (ex.: o traefik antigo que publicava a :8080).
+      - name: "Recreate Traefik stack"
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -eu
+            cd /home/fabiano/infra/infrastructure/traefik
+
+            # Rede interna do socket-proxy (idempotente — não falha se já existe).
+            docker network inspect socket >/dev/null 2>&1 \
+              || docker network create --internal socket
+
+            # Valida a sintaxe do compose ANTES de tocar nos containers rodando.
+            docker compose config >/dev/null
+
+            # Aplica. Se nada mudou no compose, é no-op.
+            docker compose up -d --remove-orphans
+
+            # Estado final no log do Actions.
+            docker compose ps

@@ -1,0 +1,79 @@
+groups:
+  - name: host
+    rules:
+      - alert: DiskUsageHigh
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) * 100 > 85
+        for: 10m
+        labels: { severity: critical }
+        annotations:
+          summary: "Disco > 85% em {{ $labels.instance }} ({{ $labels.mountpoint }})"
+
+      - alert: DiskWillFillIn4Hours
+        expr: predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}[1h], 4*3600) < 0
+        for: 15m
+        labels: { severity: critical }
+        annotations:
+          summary: "Disco vai encher em ~4h: {{ $labels.mountpoint }}"
+
+      - alert: HighMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "RAM > 90% no host"
+
+      - alert: HighCPU
+        expr: 100 - (avg by (instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "CPU > 85% por 15min"
+
+  - name: containers
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name="traefik"}) or absent(container_last_seen{name="prometheus"})
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "Container essencial ausente"
+
+      - alert: ContainerOOMKilled
+        expr: increase(container_oom_events_total[10m]) > 0
+        for: 0m
+        labels: { severity: critical }
+        annotations:
+          summary: "OOM kill em {{ $labels.name }}"
+
+      - alert: ContainerMemoryNearLimit
+        expr: container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} > 0.9
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.name }} usando >90% do limite de memória"
+
+  - name: http
+    rules:
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "Endpoint fora do ar: {{ $labels.instance }}"
+
+      - alert: SSLCertExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 14
+        for: 1h
+        labels: { severity: critical }
+        annotations:
+          summary: "Certificado de {{ $labels.instance }} expira em < 14 dias"
+
+      - alert: High5xxRate
+        expr: >
+          sum by (service)(rate(traefik_service_requests_total{code=~"5.."}[5m]))
+          /
+          sum by (service)(rate(traefik_service_requests_total[5m])) > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Taxa de 5xx > 5% no serviço {{ $labels.service }}"

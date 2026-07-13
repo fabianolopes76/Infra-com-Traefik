@@ -1,0 +1,81 @@
+# =============================================================
+# Middlewares dinâmicos (provider file)
+# default-chain: GLOBAL (todo tráfego websecure = TODOS os domínios) -> headers
+#                seguros + rate-limit + compress. SEM frameDeny / SEM HSTS-subdomínios,
+#                p/ não quebrar apps com iframe/câmera (prospere.academy etc.).
+# admin-chain:   só painéis (traefik/prometheus/grafana) -> panel-headers (frameDeny +
+#                HSTS forte) + basicAuth (usersfile) + rate-limit-strict.
+# Sem ipAllowList: IP residencial é dinâmico. Segurança dos painéis = bcrypt forte +
+# rate limit + CrowdSec. Para blindar mais, use VPN (Tailscale) + ipAllowList 100.64.0.0/10.
+# =============================================================
+http:
+  middlewares:
+    # ---------- blocos individuais ----------
+    # SEGURA p/ TODOS os domínios (global via default-chain). Sem frameDeny
+    # (quebraria iframe: prospere.academy, chatwoot, typebot) e sem
+    # stsIncludeSubdomains (cascatearia HTTPS forçado p/ subdomínios de outras
+    # zonas que talvez não sejam HTTPS — e é difícil reverter).
+    security-headers:
+      headers:
+        stsSeconds: 31536000
+        contentTypeNosniff: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        browserXssFilter: true
+        customResponseHeaders:
+          Server: "" # não anunciar o servidor
+          X-Powered-By: ""
+
+    # ESTRITA, só para painéis admin (via admin-chain/portainer-protect).
+    # Aqui pode frameDeny + HSTS forte + travar câmera/mic: você controla o conteúdo.
+    panel-headers:
+      headers:
+        frameDeny: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+
+    rate-limit:
+      rateLimit:
+        average: 100 # req/s média por IP
+        burst: 50
+        period: 1s
+
+    rate-limit-strict: # p/ painéis e rotas de login
+      rateLimit:
+        average: 5
+        burst: 10
+        period: 1s
+
+    compress:
+      compress: {}
+
+    in-flight:
+      inFlightReq:
+        amount: 100 # requisições simultâneas por origem
+
+    admin-auth:
+      basicAuth:
+        usersFile: /auth/usersfile # [3] gerado com htpasswd -BC 12
+        removeHeader: true
+
+    # ---------- chains ----------
+    default-chain:
+      chain:
+        middlewares:
+          - security-headers
+          - rate-limit
+          - compress
+
+    admin-chain:
+      chain:
+        middlewares:
+          - panel-headers
+          - admin-auth
+          - rate-limit-strict
+
+    # Portainer tem login próprio -> panel-headers + rate limit, sem basicauth
+    portainer-protect:
+      chain:
+        middlewares:
+          - panel-headers
+          - rate-limit-strict

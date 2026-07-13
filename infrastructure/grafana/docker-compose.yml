@@ -8,17 +8,25 @@ networks:
 
 services:
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.1.0
     container_name: grafana
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: "0.50"
     env_file:
-      - .env
+      - .env  # deve conter: GF_SECURITY_ADMIN_PASSWORD forte,
+              # GF_USERS_ALLOW_SIGN_UP=false,
+              # GF_SERVER_ROOT_URL=https://grafana.upsolve.com.br
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`grafana.upsolve.com.br`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.docker.network=production"
+      # Grafana tem login próprio; p/ blindar tb com allowlist de IP:
+      # - "traefik.http.routers.grafana.middlewares=portainer-protect@file"
     volumes:
       - grafana_data:/var/lib/grafana
     networks:

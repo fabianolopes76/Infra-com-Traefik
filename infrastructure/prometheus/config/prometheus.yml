@@ -1,11 +1,33 @@
 global:
-  scrape_interval: 15s 
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# ---- Alertas ([M9]) ----
+rule_files:
+  - /etc/prometheus/alerts/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
 
 scrape_configs:
- 
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
   - job_name: 'node_exporter'
     static_configs:
-      - targets: ['node_exporter:9100']  
+      - targets: ['node_exporter:9100']
+
+  - job_name: 'cadvisor'                    # NOVO: consumo por container
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8082']           # ATENÇÃO: mudou de 8080 -> 8082
 
   - job_name: 'redis'
     static_configs:
@@ -19,10 +41,6 @@ scrape_configs:
     static_configs:
       - targets: ['postgres-exporter:9187']
 
-  - job_name: 'traefik'
-    static_configs:
-      - targets: ['traefik:8080']
-
   - job_name: 'rabbitmq'
     static_configs:
       - targets: ['rabbitmq:15692']
@@ -31,3 +49,21 @@ scrape_configs:
     static_configs:
       - targets: ['soketi:6001']
 
+  # NOVO: probes HTTPS externos — uptime + validade de certificado
+  - job_name: 'blackbox-https'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://grafana.upsolve.com.br
+          # adicione aqui a URL pública de CADA app de cliente:
+          # - https://app1.upsolve.com.br
+          # - https://app2.upsolve.com.br
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

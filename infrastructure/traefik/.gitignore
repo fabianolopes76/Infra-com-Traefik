@@ -4,3 +4,6 @@ certs/acme.json
 
 # Secrets de credenciais — provisionar por ambiente, nunca versionar.
 secrets/*.secret
+
+# basicAuth: hashes bcrypt não vão pro Git (evita brute-force offline).
+secrets/usersfile
