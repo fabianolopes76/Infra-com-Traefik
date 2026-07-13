@@ -1,0 +1,13 @@
+# Segredos e ambiente
+.env
+
+# Saída gerada pelo Satis (recriada a cada build)
+/output/
+
+# Logs
+*.log
+
+# Backups temporários
+*.bak
+*.bak-*
+*.with-version
