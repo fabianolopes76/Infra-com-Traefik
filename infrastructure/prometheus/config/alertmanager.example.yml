@@ -9,6 +9,15 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
+    # DeadMansSwitch: NÃO vai pro Telegram (spammaria). Vai pra um heartbeat
+    # externo com repeat_interval curto. Configure em healthchecks.io um check
+    # com "period" maior que este repeat (ex: 10min) -> se o ping sumir, ele te avisa.
+    - matchers: [ alertname = DeadMansSwitch ]
+      receiver: deadmansswitch
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 2m
+
     - matchers: [ severity = critical ]
       receiver: telegram-critical
       repeat_interval: 1h
@@ -39,3 +48,12 @@ receivers:
           ⚠️ <b>{{ .CommonLabels.alertname }}</b>
           {{ range .Alerts }}{{ .Annotations.summary }}
           {{ end }}
+
+  # Heartbeat do DeadMansSwitch. Crie um check em https://healthchecks.io
+  # (grátis) e cole a URL de ping aqui. Enquanto os pings chegam, silêncio;
+  # se pararem (Prometheus/Alertmanager morreu), o healthchecks.io te alerta
+  # por outro canal (e-mail/Telegram/SMS) — fora da sua VPS.
+  - name: deadmansswitch
+    webhook_configs:
+      - url: "https://hc-ping.com/SEU-UUID-AQUI"
+        send_resolved: false

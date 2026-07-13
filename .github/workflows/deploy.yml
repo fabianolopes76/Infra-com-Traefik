@@ -36,7 +36,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Barra o deploy se a config/regras do Prometheus estiverem inválidas.
+  # Roda promtool (do próprio image do Prometheus) sobre a config real.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "promtool check (config + rules + recording)"
+        run: |
+          set -eu
+          # Monta config/ em /etc/prometheus para casar com os caminhos absolutos
+          # do rule_files (/etc/prometheus/alerts/*.yml) dentro do prometheus.yml.
+          docker run --rm \
+            -v "$PWD/infrastructure/prometheus/config:/etc/prometheus:ro" \
+            --entrypoint promtool prom/prometheus:v3.13.1 \
+            check config /etc/prometheus/prometheus.yml
+
   build_deploy:
+    needs: validate          # só faz deploy se a validação passar
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"

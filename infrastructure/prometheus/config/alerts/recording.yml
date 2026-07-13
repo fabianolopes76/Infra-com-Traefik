@@ -1,0 +1,47 @@
+# =============================================================
+# Recording rules — pré-computam expressões caras/repetidas em séries
+# prontas (padrão de nome level:metric:operation). Ganho: dashboards
+# instantâneos e alertas de UMA linha, sempre consistentes.
+# Carregado pelo mesmo glob rule_files: /etc/prometheus/alerts/*.yml
+# =============================================================
+groups:
+  - name: recording-traefik
+    interval: 30s
+    rules:
+      - record: service:traefik_requests:rate5m
+        expr: sum by (service) (rate(traefik_service_requests_total[5m]))
+
+      - record: service:traefik_5xx:ratio5m
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+          /
+          sum by (service) (rate(traefik_service_requests_total[5m]))
+
+  - name: recording-node
+    interval: 30s
+    rules:
+      # avg by (instance) -> mantém só 'instance'
+      - record: instance:node_cpu:ratio5m
+        expr: 1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+
+      - record: instance:node_memory:ratio
+        expr: 1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes
+
+      # sem 'by' -> preserva labels instance/device/mountpoint p/ as annotations
+      - record: instance:node_filesystem_used:ratio
+        expr: >
+          1 -
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+          /
+          node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+
+  - name: recording-containers
+    interval: 30s
+    rules:
+      # 'and ... > 0' descarta containers sem mem_limit (limite=0 -> divisão inválida)
+      - record: name:container_memory:ratio
+        expr: >
+          container_memory_usage_bytes{name!=""}
+          /
+          container_spec_memory_limit_bytes{name!=""}
+          and container_spec_memory_limit_bytes{name!=""} > 0

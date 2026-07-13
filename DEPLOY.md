@@ -11,6 +11,9 @@ O deploy é disparado por **push na branch `main`** e definido em
 ```
 push na main
    │
+   ├─ 0. VALIDATE → promtool check da config/regras do Prometheus.
+   │               Se falhar, o deploy NÃO roda (job `build_deploy` needs `validate`).
+   │
    ├─ 1. Checkout do repositório (GitHub Actions runner)
    │
    ├─ 2. SCP  → copia os arquivos para /home/fabiano/infra na VPS
