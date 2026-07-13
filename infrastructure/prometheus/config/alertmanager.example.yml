@@ -1,0 +1,41 @@
+# Alertmanager — roteamento crítico vs. warning via Telegram
+# 1) Crie um bot com o @BotFather e pegue o token
+# 2) Descubra seu chat_id: envie msg ao bot e acesse
+#    https://api.telegram.org/bot<TOKEN>/getUpdates
+route:
+  receiver: telegram-warning
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: [ severity = critical ]
+      receiver: telegram-critical
+      repeat_interval: 1h
+
+inhibit_rules:
+  # Se o host caiu, silencia alertas derivados
+  - source_matchers: [ alertname = EndpointDown ]
+    target_matchers: [ severity = warning ]
+    equal: ['instance']
+
+receivers:
+  - name: telegram-critical
+    telegram_configs:
+      - bot_token: "COLOQUE_O_TOKEN_DO_BOT"
+        chat_id: 0            # <<< seu chat_id (número)
+        parse_mode: HTML
+        message: |
+          🚨 <b>{{ .CommonLabels.alertname }}</b>
+          {{ range .Alerts }}{{ .Annotations.summary }}
+          {{ end }}
+
+  - name: telegram-warning
+    telegram_configs:
+      - bot_token: "COLOQUE_O_TOKEN_DO_BOT"
+        chat_id: 0
+        parse_mode: HTML
+        message: |
+          ⚠️ <b>{{ .CommonLabels.alertname }}</b>
+          {{ range .Alerts }}{{ .Annotations.summary }}
+          {{ end }}
