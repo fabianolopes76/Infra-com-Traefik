@@ -1,0 +1,36 @@
+http:
+  middlewares:
+    rate-limit-global:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+
+    rate-limit-auth:
+      rateLimit:
+        average: 5
+        burst: 10
+        period: 1m
+
+    rate-limit-api:
+      rateLimit:
+        average: 60
+        burst: 30
+        period: 1m
+
+    secure-headers:
+      headers:
+        sslRedirect: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        frameDeny: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          X-Powered-By: ""
+          Server: ""
+
+    compress-response:
+      compress: true
