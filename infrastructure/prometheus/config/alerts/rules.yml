@@ -46,7 +46,9 @@ groups:
           summary: "OOM kill em {{ $labels.name }}"
 
       - alert: ContainerMemoryNearLimit
-        expr: container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} > 0.9
+        # O 'and ... > 0' evita divisão por zero: containers SEM mem_limit têm
+        # container_spec_memory_limit_bytes=0, e uso/0 = +Inf dispararia falso.
+        expr: container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""} > 0.9 and container_spec_memory_limit_bytes{name!=""} > 0
         for: 10m
         labels: { severity: warning }
         annotations:
