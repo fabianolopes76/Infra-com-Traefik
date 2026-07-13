@@ -70,17 +70,45 @@ groups:
         annotations:
           summary: "Certificado de {{ $labels.instance }} expira em < 14 dias"
 
-      # ratio > 5% E tráfego mínimo (>0.2 req/s) -> mata falso crítico em
-      # endpoints ociosos (Reverb/websocket) durante deploy.
-      - alert: High5xxRate
+  # SLO de 99.5% de sucesso por serviço Traefik (orçamento de erro = 0.5% = 0.005).
+  # Alertas por BURN-RATE multi-janela (padrão Google SRE): cada tier exige a
+  # janela LONGA (confirma tendência) E a CURTA (confirma que ainda acontece),
+  # eliminando ruído e disparo tardio. burn = ratio / 0.005. O guard de tráfego
+  # (rate5m) evita page em serviço ocioso (ex: Reverb/websocket).
+  - name: slo-traefik
+    rules:
+      # 14.4x: consome 2% do budget mensal em 1h -> incidente grave, PAGE já.
+      - alert: TraefikErrorBudgetBurnFast
         expr: >
-          service:traefik_5xx:ratio5m > 0.05
-          and
-          service:traefik_requests:rate5m > 0.2
-        for: 5m
+          service:traefik_5xx:ratio1h > (14.4 * 0.005)
+          and service:traefik_5xx:ratio5m > (14.4 * 0.005)
+          and service:traefik_requests:rate5m > 0.2
+        for: 2m
         labels: { severity: critical }
         annotations:
-          summary: "Taxa de 5xx > 5% no serviço {{ $labels.service }}"
+          summary: "Burn rápido do orçamento de erro (>14.4x) em {{ $labels.service }}"
+
+      # 6x: queima sustentada -> PAGE, com janela maior p/ não ser espúrio.
+      - alert: TraefikErrorBudgetBurnSlow
+        expr: >
+          service:traefik_5xx:ratio6h > (6 * 0.005)
+          and service:traefik_5xx:ratio30m > (6 * 0.005)
+          and service:traefik_requests:rate5m > 0.05
+        for: 15m
+        labels: { severity: critical }
+        annotations:
+          summary: "Burn sustentado do orçamento de erro (>6x) em {{ $labels.service }}"
+
+      # 3x: erosão lenta -> ticket/warning, não acorda ninguém.
+      - alert: TraefikErrorBudgetBurnWarn
+        expr: >
+          service:traefik_5xx:ratio1d > (3 * 0.005)
+          and service:traefik_5xx:ratio2h > (3 * 0.005)
+          and service:traefik_requests:rate5m > 0.05
+        for: 1h
+        labels: { severity: warning }
+        annotations:
+          summary: "Erosão do orçamento de erro (>3x) em {{ $labels.service }}"
 
   - name: monitoring
     rules:

@@ -17,6 +17,32 @@ groups:
           /
           sum by (service) (rate(traefik_service_requests_total[5m]))
 
+  # Janelas para o burn-rate SLO (multi-janela, padrão Google SRE). Cada uma é
+  # a fração de 5xx do serviço na janela; os alertas comparam contra o budget.
+  - name: recording-traefik-slo
+    interval: 30s
+    rules:
+      - record: service:traefik_5xx:ratio30m
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[30m]))
+          / sum by (service) (rate(traefik_service_requests_total[30m]))
+      - record: service:traefik_5xx:ratio1h
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[1h]))
+          / sum by (service) (rate(traefik_service_requests_total[1h]))
+      - record: service:traefik_5xx:ratio2h
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[2h]))
+          / sum by (service) (rate(traefik_service_requests_total[2h]))
+      - record: service:traefik_5xx:ratio6h
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[6h]))
+          / sum by (service) (rate(traefik_service_requests_total[6h]))
+      - record: service:traefik_5xx:ratio1d
+        expr: >
+          sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[1d]))
+          / sum by (service) (rate(traefik_service_requests_total[1d]))
+
   - name: recording-node
     interval: 30s
     rules:
