@@ -88,21 +88,25 @@ aprovação do owner**. A barreira é a *regra*, não a confiança.
 
 | Credencial | Tipo | Escopo | Dono | Expira | Onde vive | Status |
 |---|---|---|---|---|---|---|
-| Satis (leitura dos repos) | fine-grained PAT | `upsolve-br` · All repos · Contents:Read | `fabianolopes76` | *definir 90d* | `applications/satis/.env` (server-only) | **alvo** — migrar do classic `repo` |
-| `upsolve-br` | fine-grained PAT | org | `fabianolopes76` | Mar/2027 | ? | revisar necessidade |
-| `satis-upsolve` | fine-grained PAT | org | `fabianolopes76` | **sem expiração** | ? | **eliminar/rotacionar** (sem expiração) |
+| `satis-upsolve-2026-07` (Satis lê os repos) | fine-grained PAT | `upsolve-br` · All repos · Contents:Read | `fabianolopes76` | 14/out/2026 | `applications/satis/.env` (server-only) | ✅ **ativo** — rotacionado em 2026-07-16 |
+| `upsolve-br` | fine-grained PAT | org | `fabianolopes76` | Mar/2027 | ? | revisar necessidade (sem uso há ~2 meses) |
+| ~~`satis-packages-upsolve`~~ (classic exposto) | classic PAT `repo` | todos os repos do dono | `fabianolopes76` | — | (era `applications/satis/.env`) | 🗑️ **revogado** 2026-07-16 (exposto em claro em 07-12) |
+| ~~`satis-upsolve`~~ | fine-grained PAT | org | `fabianolopes76` | sem expiração | — | 🗑️ **removido** 2026-07-16 (sem uso, sem expiração) |
 
 ## Estado atual e roadmap
 
-- [ ] **Camada 1 (agora):** rotacionar o token do Satis do classic `repo` para
-      **fine-grained read-only** (fecha o token exposto **e** corrige o privilégio).
+- [x] **Camada 1 (feito 2026-07-16):** Satis rotacionado do classic `repo` exposto
+      para **fine-grained read-only** (`satis-upsolve-2026-07`, Contents:Read); token
+      exposto **revogado**. Verificado por `ls-remote` em 5 repos privados + rebuild
+      completo do catálogo (todos os ~63 repos) sem erros de auth.
+- [x] **Camada 5 (parcial, 2026-07-16):** eliminados o classic exposto
+      (`satis-packages-upsolve`) e o fine-grained `satis-upsolve` (sem expiração).
+      Falta revisar `upsolve-br` (sem uso há ~2 meses).
 - [ ] **Camada 2 (curto prazo):** ligar **rulesets no `main`** de todos os repos.
 - [ ] **Camada 4:** ligar 2FA obrigatório + restrição de classic PATs + restrição
       de criação/deleção de repos.
 - [ ] **Camada 1 (end-state):** migrar a automação do Satis para um **GitHub App**
       org-owned com installation tokens de vida curta.
-- [ ] **Camada 5:** eliminar tokens sem expiração (`satis-upsolve`) e revisar
-      `upsolve-br`.
 
 ## Runbooks relacionados
 
