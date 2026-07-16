@@ -84,7 +84,37 @@ aprovação do owner**. A barreira é a *regra*, não a confiança.
   racionaliza. (Ver runbook de rotação: `applications/satis/README.md`.)
 - Eliminar tokens **sem expiração** e **não usados**.
 
-### Inventário de credenciais de automação
+## Camada 6 — Chaves SSH de deploy (GitHub Actions → VPS)
+
+Distinta da Camada 1 (PAT read-only): estas são **chaves SSH com poder de escrita**
+que dão ao runner do GitHub Actions um **shell na VPS** (via `appleboy/scp-action` +
+`appleboy/ssh-action`). São a credencial de **maior valor** de todo o footprint — se
+uma vaza, o blast radius é **shell na máquina**, não "somente leitura".
+
+> Nuance do princípio central: essas chaves não escrevem nos *repositórios* GitHub
+> (a barreira de integridade do código segue nas Camadas 2–3); elas escrevem no
+> **sistema de arquivos da VPS**. É um eixo de risco diferente — e precisa de controle
+> próprio, porque um PAT read-only não protege contra uma deploy key vazada.
+
+**Não confundir com os 65 webhooks** `upsolve-br/*` → `packages.upsolve.com.br/webhook`:
+aqueles só disparam um POST assinado (HMAC `WEBHOOK_SECRET`) que faz o Satis *puxar* —
+não abrem shell. Deploy key ≠ webhook.
+
+Regras:
+
+- **Uma chave por repo — nunca compartilhada.** Se N repos usam a MESMA
+  `SSH_PRIVATE_KEY`, revogar uma obriga rotacionar todas. Confirmar na VPS com
+  `ssh-keygen -lf ~/.ssh/authorized_keys` (1 entrada p/ N repos = compartilhada = corrigir).
+- **`authorized_keys` restrito.** Cada entrada com `restrict` + `command=` (ou ao menos
+  `no-agent-forwarding,no-X11-forwarding,no-port-forwarding`) limita o estrago se a chave vazar.
+- **Rotação com cadência** (ex.: anual): substituir o par (Actions secret + `authorized_keys`)
+  atomicamente. Deploy key é credencial de escrita — não é "set and forget".
+- **Domínios de VPS são isolados.** Nunca reusar a mesma chave entre a VPS UpSolve
+  (`srv857637`) e a VPS UFMA — são instituições/máquinas distintas (ver inventário).
+
+## Inventário de credenciais (todas as camadas)
+
+**VPS → GitHub (leitura — Camada 1):**
 
 | Credencial | Tipo | Escopo | Dono | Expira | Onde vive | Status |
 |---|---|---|---|---|---|---|
@@ -92,6 +122,34 @@ aprovação do owner**. A barreira é a *regra*, não a confiança.
 | `upsolve-br` | fine-grained PAT | org | `fabianolopes76` | Mar/2027 | ? | revisar necessidade (sem uso há ~2 meses) |
 | ~~`satis-packages-upsolve`~~ (classic exposto) | classic PAT `repo` | todos os repos do dono | `fabianolopes76` | — | (era `applications/satis/.env`) | 🗑️ **revogado** 2026-07-16 (exposto em claro em 07-12) |
 | ~~`satis-upsolve`~~ | fine-grained PAT | org | `fabianolopes76` | sem expiração | — | 🗑️ **removido** 2026-07-16 (sem uso, sem expiração) |
+
+**GitHub → VPS (gatilho de rebuild — webhook):**
+
+| Credencial | Tipo | Escopo | Onde vive | Status |
+|---|---|---|---|---|
+| `WEBHOOK_SECRET` | HMAC compartilhado | **65 webhooks** `upsolve-br/*` (evento `push`) → `/webhook` | Satis `.env` + config de cada hook | ✅ ativo — **1 segredo p/ 65 hooks** (rotação = atualizar os 65) |
+
+**GitHub Actions → VPS produção UpSolve `srv857637` (escrita — Camada 6):**
+
+| Repo (deploy) | Secrets | Workflow | Criado | Status / risco |
+|---|---|---|---|---|
+| `fabianolopes76/upsolve-infra` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | 2025-06-07 | **nunca rotacionada** |
+| `fabianolopes76/flcon` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | ? | **nunca rotacionada** |
+| `fabianolopes76/prof.fabianolopes` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo (+ `__deploy.xxx` desativado) | ? | **nunca rotacionada** |
+
+> `HOST` é um secret (valor oculto): que os três apontem para o **mesmo** `srv857637`
+> é a hipótese pelo agrupamento de perfil + convenção de nomes, confirmável só na VPS
+> (comparar `authorized_keys` / valor de `HOST`).
+
+**Fora do escopo deste playbook — VPS UFMA (perfil docente, outra instituição):**
+
+| Repo (deploy) | Secrets | Workflow | Criado | Nota |
+|---|---|---|---|---|
+| `fabianolopes76/gedid-ufma` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (+ `___deploy.xxx`) | 2026-03-01 | VPS da Universidade Federal do Maranhão |
+| `fabianolopes76/gedid-ufma-infra` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (stub 385B) | 2026-03-01 | idem — domínio UFMA, credenciais independentes |
+
+> `fabianolopes76/gedid` (sem sufixo) tem `deploy.yml` mas **zero Actions secrets** →
+> workflow morto (referencia segredos inexistentes; não deploya). Candidato a limpeza.
 
 ## Estado atual e roadmap
 
@@ -102,6 +160,13 @@ aprovação do owner**. A barreira é a *regra*, não a confiança.
 - [x] **Camada 5 (parcial, 2026-07-16):** eliminados o classic exposto
       (`satis-packages-upsolve`) e o fine-grained `satis-upsolve` (sem expiração).
       Falta revisar `upsolve-br` (sem uso há ~2 meses).
+- [x] **Camada 6 (inventariado 2026-07-16):** mapeadas **3 chaves SSH de deploy**
+      p/ `srv857637` (`upsolve-infra`, `flcon`, `prof.fabianolopes`) + 2 p/ UFMA
+      (`gedid-ufma`, `gedid-ufma-infra`). Nenhuma rotacionada desde a criação.
+- [ ] **Camada 6 (hardening):** na VPS, rodar `ssh-keygen -lf ~/.ssh/authorized_keys`
+      para confirmar **1 chave por repo** (não compartilhada); aplicar `restrict` nas
+      entradas do `authorized_keys`; definir rotação (anual) das deploy keys; remover
+      o `deploy.yml` morto de `fabianolopes76/gedid`.
 - [ ] **Camada 2 (curto prazo):** ligar **rulesets no `main`** de todos os repos.
 - [ ] **Camada 4:** ligar 2FA obrigatório + restrição de classic PATs + restrição
       de criação/deleção de repos.
