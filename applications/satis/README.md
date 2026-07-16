@@ -11,7 +11,7 @@ O container roda **long-lived** (nginx + php-fpm + cron). Builds ocorrem por tr�
 **Use esse comando** quando precisar forçar rebuild manual (ex: webhook não disparou, debugging):
 
 ```bash
-cd /opt/Infra-com-Traefik/Applications/satis
+cd /home/fabiano/infra/applications/satis
 ./scripts/satis-run.sh
 ```
 
@@ -55,7 +55,7 @@ Os zumbis impedem inodes de bind-mounts atualizarem corretamente (causa raiz do 
 Quando o `satis.json` for editado ou pacote novo registrado:
 
 ```bash
-cd /opt/Infra-com-Traefik/Applications/satis
+cd /home/fabiano/infra/applications/satis
 git pull
 docker compose up -d --build
 ./scripts/satis-run.sh
@@ -87,6 +87,42 @@ docker compose exec satis tail -100 /var/log/nginx/access.log | grep webhook
 
 Se webhook não está atualizando, ver `upsolve-br/upsolve-workspace#28` (issue rastreando comportamento).
 
+## 🔐 Rotação de segredos (`GITHUB_TOKEN`)
+
+O `GITHUB_TOKEN` vive **apenas** no `.env` do servidor (gitignored — nunca versionado nem copiado pela CD). Ele é injetado pelo `docker-compose.yml` e usado no `entrypoint.sh` em dois pontos: `composer config github-oauth` (baixa metadados) e o rewrite `git insteadOf` (clona os repos privados `upsolve-br/*` via HTTPS+token). Rotacione ao suspeitar de exposição — ou a cada expiração do PAT.
+
+### 1. Gerar o novo PAT (GitHub UI)
+
+`https://github.com/settings/tokens` → **fine-grained** (menor privilégio):
+
+- Resource owner: **upsolve-br**
+- Repository access: **All repositories** (cobre repos novos sem re-emitir)
+- Permissions: **Contents: Read-only** + **Metadata: Read-only**
+- Expiration: 90 dias
+
+> Fallback (idêntico ao setup legado): token **classic**, scope **`repo`**. Use só se o fine-grained travar em aprovação de org.
+
+### 2. Trocar o `.env` e recriar o container (na VPS)
+
+```bash
+cd /home/fabiano/infra/applications/satis
+cp .env .env.bak-$(date +%Y%m%d)     # backup
+nano .env                            # GITHUB_TOKEN=<novo>
+docker compose up -d --force-recreate satis
+docker compose logs --tail=5 satis   # espera: "[Satis] GitHub token configurado."
+```
+
+Só o `.env` mudou → `--force-recreate` garante que o `entrypoint.sh` rode de novo e reconfigure o auth com o token novo (não precisa `--build`).
+
+### 3. Provar e revogar
+
+```bash
+./scripts/satis-run.sh
+docker compose exec satis tail -60 /var/log/satis-build.log
+```
+
+Sucesso = clones de `upsolve-br/*` **sem** `401` / `Bad credentials` / `Permission denied`. Só **depois** do build verde, revogue o PAT antigo em `https://github.com/settings/tokens` (revogar antes deixa o Satis sem auth na janela entre os passos).
+
 ## Registrar pacote novo
 
 Editar `config/satis.json`:
@@ -98,7 +134,7 @@ Editar `config/satis.json`:
 }
 ```
 
-Commit, push do `Infra-com-Traefik`, deploy no servidor, `satis-run.sh`.
+Commit, push do `upsolve-infra`, deploy no servidor, `satis-run.sh`.
 
 Skill em desenvolvimento: `upsolve-register-satis` (issue `upsolve-br/upsolve-workspace#29`).
 
