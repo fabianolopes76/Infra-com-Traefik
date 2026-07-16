@@ -127,15 +127,17 @@ Regras:
 
 | Credencial | Tipo | Escopo | Onde vive | Status |
 |---|---|---|---|---|
-| `WEBHOOK_SECRET` | HMAC compartilhado | **65 webhooks** `upsolve-br/*` (evento `push`) → `/webhook` | Satis `.env` + config de cada hook | ✅ ativo — **1 segredo p/ 65 hooks** (rotação = atualizar os 65) |
+| `WEBHOOK_SECRET` | HMAC compartilhado | **63 webhooks** `upsolve-br/*` (evento `push`) → `/webhook` | Satis `.env` + config de cada hook | ✅ **validado 2026-07-16** (ping → 200/OK, HMAC bate) — **1 segredo p/ 63 hooks** (rotação = atualizar os 63) |
+
+> Os 7 repos **sem** webhook (`upsolve-workspace`, `upsolve-ai`, `app-template-{simple,tenant-single,tenant-multi}`, `new-flcon`, `playground-legal`) são corretos — nenhum é pacote Composer servido pelo Satis. Verificação: os 63 hooks apontam **todos** p/ `/webhook`, zero destino inesperado, zero falha (4xx/5xx). Estavam `unused` (nenhum push desde 07-12, não segredo quebrado — o ping confirmou o HMAC).
 
 **GitHub Actions → VPS produção UpSolve `srv857637` (escrita — Camada 6):**
 
-| Repo (deploy) | Secrets | Workflow | Criado | Status / risco |
+| Repo (deploy) | Secrets | Workflow | Último run OK | Status / risco |
 |---|---|---|---|---|
-| `fabianolopes76/upsolve-infra` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | 2025-06-07 | **nunca rotacionada** |
-| `fabianolopes76/flcon` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | ? | **nunca rotacionada** |
-| `fabianolopes76/prof.fabianolopes` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo (+ `__deploy.xxx` desativado) | ? | **nunca rotacionada** |
+| `fabianolopes76/upsolve-infra` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | **2026-07-16** (success) | 🟢 viva/ativa — **nunca rotacionada** |
+| `fabianolopes76/flcon` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo | 2026-03-30 (success) | 🟡 válida mas **ociosa ~3,5 meses** — nunca rotacionada |
+| `fabianolopes76/prof.fabianolopes` | `HOST` · `USERNAME` · `SSH_PRIVATE_KEY` | `deploy.yml` ✅ ativo (+ `__deploy.xxx` desativado) | 2026-07-13 (success) | 🟢 viva/ativa — **nunca rotacionada** |
 
 > `HOST` é um secret (valor oculto): que os três apontem para o **mesmo** `srv857637`
 > é a hipótese pelo agrupamento de perfil + convenção de nomes, confirmável só na VPS
@@ -143,10 +145,10 @@ Regras:
 
 **Fora do escopo deste playbook — VPS UFMA (perfil docente, outra instituição):**
 
-| Repo (deploy) | Secrets | Workflow | Criado | Nota |
+| Repo (deploy) | Secrets | Workflow | Último run OK | Nota |
 |---|---|---|---|---|
-| `fabianolopes76/gedid-ufma` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (+ `___deploy.xxx`) | 2026-03-01 | VPS da Universidade Federal do Maranhão |
-| `fabianolopes76/gedid-ufma-infra` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (stub 385B) | 2026-03-01 | idem — domínio UFMA, credenciais independentes |
+| `fabianolopes76/gedid-ufma` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (+ `___deploy.xxx`) | 2026-06-26 (success) | 🟢 VPS da Universidade Federal do Maranhão |
+| `fabianolopes76/gedid-ufma-infra` | `VPS_HOST` · `VPS_USER` · `VPS_SSH_KEY` | `deploy.yml` ✅ ativo (stub 385B) | 2026-03-01 (success) | 🟡 UFMA — ociosa ~4,5 meses; credenciais independentes |
 
 > `fabianolopes76/gedid` (sem sufixo) tem `deploy.yml` mas **zero Actions secrets** →
 > workflow morto (referencia segredos inexistentes; não deploya). Candidato a limpeza.
@@ -160,9 +162,12 @@ Regras:
 - [x] **Camada 5 (parcial, 2026-07-16):** eliminados o classic exposto
       (`satis-packages-upsolve`) e o fine-grained `satis-upsolve` (sem expiração).
       Falta revisar `upsolve-br` (sem uso há ~2 meses).
-- [x] **Camada 6 (inventariado 2026-07-16):** mapeadas **3 chaves SSH de deploy**
-      p/ `srv857637` (`upsolve-infra`, `flcon`, `prof.fabianolopes`) + 2 p/ UFMA
-      (`gedid-ufma`, `gedid-ufma-infra`). Nenhuma rotacionada desde a criação.
+- [x] **Camada 6 (inventariado + verificado 2026-07-16):** mapeadas **3 chaves SSH
+      de deploy** p/ `srv857637` (`upsolve-infra`, `flcon`, `prof.fabianolopes`) + 2 p/
+      UFMA (`gedid-ufma`, `gedid-ufma-infra`). **Liveness confirmada** — as 5 com último
+      run `success` (2 dormentes há meses, mas válidas). Nenhuma rotacionada desde a criação.
+- [x] **Webhook (verificado 2026-07-16):** os 63 hooks → `/webhook` limpos (destino
+      certo, zero falha); `WEBHOOK_SECRET` **confirmado válido** por ping (200/OK).
 - [ ] **Camada 6 (hardening):** na VPS, rodar `ssh-keygen -lf ~/.ssh/authorized_keys`
       para confirmar **1 chave por repo** (não compartilhada); aplicar `restrict` nas
       entradas do `authorized_keys`; definir rotação (anual) das deploy keys; remover
