@@ -168,6 +168,10 @@
     },
     {
       "type": "vcs",
+      "url": "https://github.com/upsolve-br/app-financial-integration-listeners"
+    },
+    {
+      "type": "vcs",
       "url": "https://github.com/upsolve-br/app-crm-collaborator"
     },
     {
